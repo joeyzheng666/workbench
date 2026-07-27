@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workbench-v1';
+const CACHE_NAME = 'workbench-v2';
 const ASSETS = [
   '.',
   'index.html',
@@ -25,9 +25,19 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// 请求拦截：缓存优先
+// 请求拦截：网络优先，缓存兜底（保证每次打开都是最新版本）
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request)
+      .then(response => {
+        // 更新缓存
+        const cloned = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, cloned));
+        return response;
+      })
+      .catch(() => {
+        // 网络不可用时降级到缓存
+        return caches.match(e.request);
+      })
   );
 });

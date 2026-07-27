@@ -1105,6 +1105,34 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
     50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
   }
+
+  .timer-mini {
+    position: fixed;
+    bottom: 24px;
+    right: 16px;
+    background: var(--primary);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    z-index: 999;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(30, 77, 63, 0.4);
+    animation: bounce-in 0.3s ease;
+    white-space: nowrap;
+  }
+  .timer-mini.show { display: flex; }
+  .timer-mini.warning { background: #d97706; animation: pulse-timer 2s ease-in-out infinite; }
+  .timer-mini.urgent { background: #dc2626; animation: pulse-timer 1s ease-in-out infinite; }
+  @keyframes bounce-in {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
   .timer-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -1237,9 +1265,28 @@
     color: #fff;
   }
 
+
+  .update-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 14px;
+    z-index: 2000;
+    display: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .update-banner.show { display: block; }
   </style>
 </head>
 <body>
+<div class="update-banner" id="update-banner" onclick="location.reload()">🔄 有新版本！点击刷新</div>
+<div class="timer-mini" id="timer-mini" onclick="reopenTimer()">🍅 <span id="timer-mini-display">25:00</span></div>
 <div class="timer-overlay" id="timer-overlay" onclick="closeTimer(event)">
   <div class="timer-popup" onclick="event.stopPropagation()">
     <div class="timer-popup-title">🍅 番茄钟</div>
@@ -2092,13 +2139,14 @@ function startTimer() {
   const actionsEl = document.getElementById('timer-actions');
   actionsEl.innerHTML = `
     <button class="timer-cancel" onclick="stopTimer()">停止</button>
-    <button class="timer-cancel" onclick="closeTimer()">关闭</button>
+    <button class="timer-start" onclick="minimizeTimer()">最小化</button>
   `;
 
   updateTimerDisplay();
   timerState.interval = setInterval(() => {
     timerState.remainingSeconds--;
     updateTimerDisplay();
+    updateMiniTimer();
     if (timerState.remainingSeconds <= 0) {
       clearInterval(timerState.interval);
       timerState.interval = null;
@@ -2108,6 +2156,7 @@ function startTimer() {
       // Play beep
       try { playBeep(); } catch(e) {}
       // Alert
+      document.getElementById('timer-mini').classList.remove('show');
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('⏰ 时间到！', { body: timerState.type === 'ielts' ? '雅思任务完成，休息一下吧' : '考公任务完成！' });
       }
@@ -2133,6 +2182,11 @@ function stopTimer() {
 
 function closeTimer(e) {
   if (e && e.target !== document.getElementById('timer-overlay')) return;
+  // If timer is running, minimize instead of closing
+  if (timerState.running) {
+    minimizeTimer();
+    return;
+  }
   if (timerState.interval) { clearInterval(timerState.interval); timerState.interval = null; }
   timerState.running = false;
   const item = state[timerState.type] && state[timerState.type].find(t => t.id === timerState.id);
@@ -2140,6 +2194,36 @@ function closeTimer(e) {
   document.getElementById('timer-overlay').classList.remove('show');
 }
 
+
+function minimizeTimer() {
+  document.getElementById('timer-overlay').classList.remove('show');
+  const mini = document.getElementById('timer-mini');
+  mini.classList.add('show');
+  updateMiniTimer();
+}
+
+function reopenTimer() {
+  // Show overlay with running state
+  document.getElementById('timer-mini').classList.remove('show');
+  document.getElementById('timer-overlay').classList.add('show');
+  updateTimerDisplay();
+}
+
+function updateMiniTimer() {
+  const s = timerState.remainingSeconds;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  const el = document.getElementById('timer-mini-display');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  const mini = document.getElementById('timer-mini');
+  if (s <= 60) {
+    mini.className = 'timer-mini urgent show';
+  } else if (s <= 300) {
+    mini.className = 'timer-mini warning show';
+  } else {
+    mini.className = 'timer-mini show';
+  }
+}
 function playBeep() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2216,6 +2300,21 @@ function showHistory(type) {
 function closeHistory(e) {
   if (e && e.target !== document.getElementById('history-overlay')) return;
   document.getElementById('history-overlay').classList.remove('show');
+}
+
+
+// Service Worker 更新检测
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          document.getElementById('update-banner').classList.add('show');
+        }
+      });
+    });
+  });
 }
 
 // ============ 初始化 ============
