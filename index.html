@@ -233,23 +233,6 @@
     color: var(--primary) !important;
   }
 
-  .nav-footer {
-    margin-top: auto;
-    padding: 18px 24px;
-    border-top: 1px solid #e8e8e8;
-  }
-  .nav-footer-item {
-    padding: 10px 0;
-    cursor: pointer;
-    font-size: 13px;
-    color: #999;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: color 0.2s;
-  }
-  .nav-footer-item:hover { color: var(--primary); }
-
   /* ============ 主内容区 ============ */
   .main {
     padding: 32px 48px 64px;
@@ -826,6 +809,68 @@
     resize: vertical;
   }
 
+  /* ============ 日记密码锁 ============ */
+  .diary-lock-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: var(--radius);
+    min-height: 400px;
+  }
+  .diary-lock-overlay.hidden { display: none; }
+  .diary-lock-img {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    border-radius: 50%;
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+  }
+  .diary-lock-text {
+    font-size: 16px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  .diary-lock-input {
+    width: 200px;
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 8px;
+    outline: none;
+    font-family: inherit;
+    background: var(--card-bg);
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+  .diary-lock-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--primary-light);
+  }
+  .diary-lock-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+  .diary-lock-shake {
+    animation: shake 0.4s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  #panel-diary { position: relative; }
+
   /* ============ 滚动条 ============ */
   .main-wrap::-webkit-scrollbar { width: 8px; }
   .main-wrap::-webkit-scrollbar-track { background: transparent; }
@@ -912,6 +957,186 @@
     font-weight: 500;
   }
 
+  /* ============ 提醒事项 ============ */
+  .reminder-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .reminder-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 13px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    font-family: inherit;
+  }
+  .reminder-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--primary-light); }
+  .reminder-list { list-style: none; }
+  .reminder-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+  }
+  .reminder-item:hover { box-shadow: var(--shadow-hover); }
+  .reminder-item.past { opacity: 0.5; border-color: #ddd; }
+  .reminder-bell { font-size: 20px; flex-shrink: 0; }
+  .reminder-bell.past { filter: grayscale(1); }
+  .reminder-info { flex: 1; }
+  .reminder-text { font-size: 15px; line-height: 1.5; word-break: break-word; }
+  .reminder-time { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .reminder-delete {
+    color: var(--text-light); cursor: pointer; padding: 4px 8px;
+    border-radius: 6px; transition: all 0.2s; font-size: 16px; opacity: 0;
+  }
+  .reminder-item:hover .reminder-delete { opacity: 1; }
+  .reminder-delete:hover { color: var(--danger); background: #fdf2f0; }
+
+  /* === 时间选择按钮 === */
+  .reminder-time-btn {
+    width: 200px;
+    padding: 13px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    background: var(--card-bg);
+    font-family: inherit;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .reminder-time-btn:hover { border-color: var(--accent); }
+  .reminder-time-btn.has-value { color: var(--text); font-weight: 500; }
+  .reminder-time-btn .picker-btn-icon { font-size: 18px; flex-shrink: 0; }
+  .reminder-time-btn .picker-btn-arrow { margin-left: auto; color: var(--text-light); font-size: 12px; }
+  .reminder-time-btn span:nth-child(2) { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+
+  /* === 时间选择器 Overlay === */
+  .picker-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+    background: rgba(0,0,0,0.4);
+    animation: fadeIn 0.25s ease;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .picker-overlay.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .picker-sheet {
+    width: 100%; max-width: 500px;
+    background: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    animation: slideUp 0.3s ease;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+  }
+  .picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .picker-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .picker-cancel {
+    font-size: 15px; color: var(--text-light); background: none; border: none;
+    cursor: pointer; padding: 4px 8px;
+  }
+  .picker-confirm {
+    font-size: 15px; color: var(--accent); background: none; border: none;
+    cursor: pointer; padding: 4px 8px; font-weight: 600;
+  }
+
+  .picker-body {
+    position: relative;
+    padding: 0;
+    user-select: none;
+  }
+  .picker-highlight {
+    position: absolute;
+    top: 50%; left: 8px; right: 8px;
+    height: 42px;
+    transform: translateY(-50%);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(45, 138, 110, 0.04);
+    pointer-events: none;
+    border-radius: 8px;
+    z-index: 1;
+  }
+  .picker-columns {
+    display: flex;
+    height: 210px;
+    padding: 0 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .picker-column-wrap {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+  }
+  .picker-column {
+    height: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 84px 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .picker-column::-webkit-scrollbar { display: none; }
+  .picker-option {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: center;
+    font-size: 17px;
+    color: var(--text-light);
+    transition: color 0.2s, font-weight 0.2s;
+    white-space: nowrap;
+  }
+  .picker-option.selected {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .picker-labels {
+    display: flex;
+    padding: 8px 20px 12px;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .picker-labels span {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
   /* ============ 响应式 ============ */
   @media (max-width: 768px) {
     .main { padding: 20px 20px 64px; }
@@ -929,49 +1154,9 @@
       margin: 14px 0;
     }
     .phrase-grid { columns: 1; }
-    .sync-text { display: none; }
+    .reminder-input-row { flex-direction: column; }
+    .reminder-time-btn { width: 100%; }
   }
-
-  /* ============ 同步状态指示器 ============ */
-  .topbar-right { display: flex; align-items: center; gap: 10px; }
-  .sync-indicator {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--text-muted); cursor: pointer;
-    padding: 4px 10px; border-radius: 12px; transition: all 0.2s;
-    border: 1px solid transparent;
-  }
-  .sync-indicator:hover { background: var(--primary-lighter); border-color: var(--border); }
-  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: all 0.3s; }
-  .sync-dot.synced { background: #4caf50; }
-  .sync-dot.syncing { background: #ff9800; animation: pulse-sync 1s infinite; }
-  .sync-dot.error { background: #f44336; }
-  .sync-dot.offline { background: #9e9e9e; }
-  @keyframes pulse-sync { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-  .sync-text { white-space: nowrap; }
-
-  /* ============ 同步设置面板 ============ */
-  .settings-panel {
-    display: none; background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow);
-  }
-  .settings-panel.active { display: block; }
-  .settings-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--primary); }
-  .form-group { margin-bottom: 14px; }
-  .form-label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 6px; }
-  .form-input {
-    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
-    border-radius: 10px; font-size: 14px; outline: none; font-family: inherit; transition: border 0.2s;
-  }
-  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--primary-light); }
-  .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-  .form-hint a { color: var(--accent); text-decoration: none; }
-  .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-  .form-status { font-size: 13px; margin-top: 8px; padding: 8px 12px; border-radius: 8px; display: none; }
-  .form-status.show { display: block; }
-  .form-status.success { background: #e8f5e9; color: #2e7d32; }
-  .form-status.error { background: #fdf2f0; color: #c62828; }
-  .btn-danger { background: var(--danger); }
-  .btn-danger:hover { background: #a84a3c; }
 
   /* ============ Toast 提示 ============ */
   .toast {
@@ -1403,15 +1588,14 @@
     <div class="nav-item" data-panel="diary">
       <span class="nav-icon">🌙</span><span>日记本</span>
     </div>
+    <div class="nav-item" data-panel="reminders">
+      <span class="nav-icon">⏰</span><span>提醒事项</span>
+    </div>
     <div id="custom-nav-items"></div>
     <div class="nav-item nav-add" onclick="addCustomPanel()">
       <span class="nav-icon">➕</span><span>添加板块</span>
     </div>
-    <div class="nav-footer">
-      <div class="nav-footer-item" onclick="openSyncSettings()">
-        <span>⚙️</span><span>同步设置</span>
-      </div>
-    </div>
+
   </aside>
 
   <!-- Toast -->
@@ -1423,12 +1607,7 @@
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-title" id="topbar-title">IELTS</div>
-    <div class="topbar-right">
-      <div class="sync-indicator" id="sync-indicator" onclick="openSyncSettings()" title="同步状态">
-        <span class="sync-dot" id="sync-dot"></span>
-        <span class="sync-text" id="sync-text">未配置</span>
-      </div>
-    </div>
+
   </header>
 
   <!-- 主内容区 -->
@@ -1544,6 +1723,14 @@
         <div class="panel-subtitle">随心记，留住每一天的心情</div>
       </div>
 
+      <!-- 密码锁 -->
+      <div class="diary-lock-overlay" id="diary-lock">
+        <img class="diary-lock-img" src="icons/hachi-lock.jpg" alt="小八">
+        <div class="diary-lock-text">输入神秘字符</div>
+        <input type="password" class="diary-lock-input" id="diary-lock-input" placeholder="****" maxlength="10" onkeydown="if(event.key==='Enter')unlockDiary()">
+        <div class="diary-lock-hint"> hints: 四个一样的数字</div>
+      </div>
+
       <div class="diary-input">
         <div class="diary-mood-row">
           <button class="mood-btn" data-mood="😊" title="开心">😊</button>
@@ -1569,35 +1756,59 @@
       <div class="diary-list" id="diary-list"></div>
     </section>
 
-    <!-- 同步设置 -->
-    <section class="panel" id="panel-settings">
+    <!-- 提醒事项 -->
+    <section class="panel" id="panel-reminders">
       <div class="panel-header">
-        <div class="panel-title">⚙️ 同步设置</div>
-        <div class="panel-subtitle">GitHub 数据同步 · 电脑手机无缝衔接</div>
+        <div class="panel-title">⏰ 提醒事项</div>
+        <div class="panel-subtitle">设定时间，到点叫你！</div>
       </div>
-      <div class="settings-panel active">
-        <div class="settings-title">GitHub 仓库配置</div>
-        <div class="form-group">
-          <label class="form-label">GitHub Token</label>
-          <input type="password" class="form-input" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
-          <div class="form-hint">需要 <code>repo</code> 权限。<a href="https://github.com/settings/tokens" target="_blank">创建 Token</a></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">仓库</label>
-          <input type="text" class="form-input" id="gh-repo" placeholder="用户名/仓库名" value="joeyzheng666/workbench">
-        </div>
-        <div class="form-actions">
-          <button class="btn" onclick="saveSyncConfig()">💾 保存配置</button>
-          <button class="btn btn-secondary" onclick="testConnection()">🔍 测试连接</button>
-          <button class="btn btn-secondary" onclick="manualSync()">🔄 立即同步</button>
-        </div>
-        <div class="form-status" id="form-status"></div>
+      <div class="reminder-input-row">
+        <input type="text" class="reminder-input" id="reminder-text-input" placeholder="提醒内容，比如：喝水、开会、休息眼睛...">
+        <button class="reminder-time-btn" id="reminder-time-btn" onclick="openTimePicker()">
+          <span class="picker-btn-icon">📅</span>
+          <span id="reminder-time-display">点此选择时间</span>
+          <span class="picker-btn-arrow">▾</span>
+        </button>
+        <button class="btn" onclick="addReminder()">添加</button>
       </div>
+      <div class="section-title">📋 我的提醒 <span class="count" id="reminder-count"></span></div>
+      <ul class="reminder-list" id="reminder-list"></ul>
     </section>
 
     <!-- 自定义板块 -->
     <div id="custom-panels-container"></div>
   </main>
+
+  <!-- 时间选择器 -->
+  <div class="picker-overlay" id="time-picker-overlay" onclick="event.target===this && closeTimePicker()">
+    <div class="picker-sheet">
+      <div class="picker-header">
+        <button class="picker-cancel" onclick="closeTimePicker()">取消</button>
+        <span class="picker-title">选择提醒时间</span>
+        <button class="picker-confirm" onclick="confirmTimePicker()">确定</button>
+      </div>
+      <div class="picker-body">
+        <div class="picker-highlight"></div>
+        <div class="picker-columns">
+          <div class="picker-column-wrap">
+            <div class="picker-column" id="picker-date"></div>
+          </div>
+          <div class="picker-column-wrap">
+            <div class="picker-column" id="picker-hour"></div>
+          </div>
+          <div class="picker-column-wrap">
+            <div class="picker-column" id="picker-minute"></div>
+          </div>
+        </div>
+        <div class="picker-labels">
+          <span>日期</span>
+          <span>时</span>
+          <span>分</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   </div><!-- /main-wrap -->
 </div>
 
@@ -1611,25 +1822,27 @@ let state = {
   speaking: [],     // {id, text, createdAt}
   diary: [],        // {id, content, mood, image, date}
   customPanels: [], // {id, name, emoji, content}
+  reminders: [],    // {id, text, time, notified}
   currentMood: '',
   checkin: {        // 打卡数据
     ielts: { lastDate: '', streak: 0, history: [] },
     civil: { lastDate: '', streak: 0, history: [] }
-  },
-  _lastModified: 0
+  }
 };
 
 function load() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) state = { ...state, ...JSON.parse(saved) };
+    // 重建自定义板块标题映射
+    (state.customPanels || []).forEach(p => {
+      panelTitles[p.id] = (p.emoji || '📝') + ' ' + p.name;
+    });
   } catch(e) { console.error('加载失败', e); }
 }
 
 function save() {
-  state._lastModified = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  debouncedPush();
 }
 
 // ============ Toast ============
@@ -1640,151 +1853,6 @@ function showToast(msg) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
-}
-
-// ============ GitHub 同步 ============
-const SYNC_CONFIG_KEY = 'workbench_sync_config';
-const DATA_FILE = 'workbench-data.json';
-
-function getSyncConfig() {
-  try { return JSON.parse(localStorage.getItem(SYNC_CONFIG_KEY)) || { token: '', repo: 'joeyzheng666/workbench' }; }
-  catch(e) { return { token: '', repo: 'joeyzheng666/workbench' }; }
-}
-
-function saveSyncConfig() {
-  const token = document.getElementById('gh-token').value.trim();
-  const repo = document.getElementById('gh-repo').value.trim() || 'joeyzheng666/workbench';
-  if (!token) { showFormStatus('请输入 GitHub Token', 'error'); return; }
-  localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify({ token, repo }));
-  updateSyncIndicator();
-  showFormStatus('配置已保存！', 'success');
-  showToast('同步配置已保存');
-  pullFromGitHub();
-}
-
-async function testConnection() {
-  const config = getSyncConfig();
-  if (!config.token) { showFormStatus('请先保存 Token', 'error'); return; }
-  showFormStatus('正在测试连接...', '');
-  try {
-    const resp = await fetch('https://api.github.com/repos/' + config.repo, { headers: { 'Authorization': 'token ' + config.token } });
-    if (resp.ok) showFormStatus('连接成功！仓库可访问', 'success');
-    else if (resp.status === 404) showFormStatus('仓库不存在，请检查仓库名', 'error');
-    else if (resp.status === 401) showFormStatus('Token 无效或已过期', 'error');
-    else showFormStatus('连接失败 (' + resp.status + ')', 'error');
-  } catch(e) { showFormStatus('网络错误，请检查网络连接', 'error'); }
-}
-
-async function manualSync() {
-  const config = getSyncConfig();
-  if (!config.token) { showFormStatus('请先保存 Token', 'error'); return; }
-  showFormStatus('正在同步...', '');
-  const result = await pullFromGitHub();
-  if (result) showFormStatus('同步完成！', 'success');
-}
-
-function showFormStatus(msg, type) {
-  const el = document.getElementById('form-status');
-  el.textContent = msg; el.className = 'form-status show ' + (type || '');
-}
-
-function openSyncSettings() {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.custom-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-settings').classList.add('active');
-  document.getElementById('topbar-title').textContent = '同步设置';
-  const config = getSyncConfig();
-  document.getElementById('gh-token').value = config.token || '';
-  document.getElementById('gh-repo').value = config.repo || 'joeyzheng666/workbench';
-  closeSidebar();
-}
-
-function updateSyncIndicator(status, text) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-text');
-  const config = getSyncConfig();
-  if (!config.token) { dot.className = 'sync-dot offline'; txt.textContent = '未配置'; return; }
-  switch(status) {
-    case 'synced': dot.className = 'sync-dot synced'; txt.textContent = text || '已同步'; break;
-    case 'syncing': dot.className = 'sync-dot syncing'; txt.textContent = '同步中'; break;
-    case 'error': dot.className = 'sync-dot error'; txt.textContent = '同步失败'; break;
-    default: dot.className = 'sync-dot offline'; txt.textContent = '离线';
-  }
-}
-
-async function pullFromGitHub() {
-  const config = getSyncConfig();
-  if (!config.token) return false;
-  updateSyncIndicator('syncing');
-  try {
-    const resp = await fetch('https://api.github.com/repos/' + config.repo + '/contents/' + DATA_FILE + '?_t=' + Date.now(), {
-      headers: { 'Authorization': 'token ' + config.token },
-      cache: 'no-store'
-    });
-    if (!resp.ok) {
-      if (resp.status === 404) { await pushToGitHub(); updateSyncIndicator('synced', '已同步'); return true; }
-      updateSyncIndicator('error'); return false;
-    }
-    const fileInfo = await resp.json();
-    const remoteContent = JSON.parse(atob(fileInfo.content));
-    const remoteSha = fileInfo.sha;
-    const remoteTime = remoteContent._lastModified || 0;
-    const localTime = state._lastModified || 0;
-    if (remoteTime > localTime) {
-      state = { ...state, ...remoteContent };
-      state._lastModified = remoteTime;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      localStorage.setItem('workbench_remote_sha', remoteSha);
-      renderAll();
-      updateSyncIndicator('synced', '已同步');
-      showToast('已从云端同步最新数据');
-    } else if (remoteTime < localTime) {
-      await pushToGitHub(remoteSha);
-      updateSyncIndicator('synced', '已同步');
-    } else {
-      localStorage.setItem('workbench_remote_sha', remoteSha);
-      updateSyncIndicator('synced', '已同步');
-    }
-    return true;
-  } catch(e) { updateSyncIndicator('error'); return false; }
-}
-
-async function pushToGitHub(sha) {
-  const config = getSyncConfig();
-  if (!config.token) return false;
-  try {
-    if (!sha) sha = localStorage.getItem('workbench_remote_sha') || '';
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-    const body = { message: 'Update workbench data', content: content, branch: 'main' };
-    if (sha) body.sha = sha;
-    const resp = await fetch('https://api.github.com/repos/' + config.repo + '/contents/' + DATA_FILE + '?_t=' + Date.now(), {
-      method: 'PUT',
-      headers: { 'Authorization': 'token ' + config.token, 'Content-Type': 'application/json' },
-      cache: 'no-store',
-      body: JSON.stringify(body)
-    });
-    if (resp.ok) {
-      const result = await resp.json();
-      localStorage.setItem('workbench_remote_sha', result.content.sha);
-      updateSyncIndicator('synced', '已同步');
-      return true;
-    } else if (resp.status === 409) { await pullFromGitHub(); return true; }
-    else { updateSyncIndicator('error'); return false; }
-  } catch(e) { updateSyncIndicator('error'); return false; }
-}
-
-let pushTimer;
-function debouncedPush() {
-  const config = getSyncConfig();
-  if (!config.token) return;
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(() => { updateSyncIndicator('syncing'); pushToGitHub(); }, 2000);
-}
-
-function renderAll() {
-  renderTodo('ielts'); renderTodo('civil'); renderPhrase(); renderDiary();
-  renderCheckin('ielts'); renderCheckin('civil'); renderCustomNav(); renderCustomPanels(); bindNavEvents();
 }
 
 function uid() {
@@ -1801,7 +1869,8 @@ const panelTitles = {
   ielts: '👩🏻‍💻 IELTS',
   speaking: '💬 口语积累',
   civil: '📖 考公',
-  diary: '🌙 日记本'
+  diary: '🌙 日记本',
+  reminders: '⏰ 提醒事项'
 };
 
 function openSidebar() {
@@ -1821,19 +1890,20 @@ function toggleSidebar() {
 }
 
 // ============ 导航切换 ============
+function navTo(panel) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.custom-panel').forEach(p => p.classList.remove('active'));
+  const navItem = document.querySelector('.nav-item[data-panel="' + panel + '"]');
+  if (navItem) navItem.classList.add('active');
+  const target = document.getElementById('panel-' + panel) || document.getElementById('custom-panel-' + panel);
+  if (target) target.classList.add('active');
+  topbarTitle.textContent = panelTitles[panel] || '';
+  closeSidebar();
+}
 function bindNavEvents() {
   document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.custom-panel').forEach(p => p.classList.remove('active'));
-      item.classList.add('active');
-      const panel = item.dataset.panel;
-      const target = document.getElementById('panel-' + panel) || document.getElementById('custom-panel-' + panel);
-      if (target) target.classList.add('active');
-      topbarTitle.textContent = panelTitles[panel] || '';
-      closeSidebar();
-    });
+    item.onclick = () => navTo(item.dataset.panel);
   });
 }
 bindNavEvents();
@@ -1852,16 +1922,7 @@ function addCustomPanel() {
   bindNavEvents();
   // Auto-switch to new panel
   setTimeout(() => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.custom-panel').forEach(p => p.classList.remove('active'));
-    const navItem = document.querySelector(`.nav-item[data-panel="${id}"]`);
-    if (navItem) navItem.classList.add('active');
-    const target = document.getElementById('custom-panel-' + id);
-    if (target) target.classList.add('active');
-    topbarTitle.textContent = panelTitles[id] || '';
-    closeSidebar();
-    // Re-bind events since we added a new listener
+    navTo(id);
     bindNavEvents();
   }, 100);
 }
@@ -1873,6 +1934,7 @@ function deleteCustomPanel(id) {
   save();
   renderCustomNav();
   renderCustomPanels();
+  bindNavEvents();
 }
 
 function saveCustomContent(id) {
@@ -2297,6 +2359,212 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
   });
 });
 
+
+// ============ 提醒事项 ============
+let pickerValue = { dateIdx: 0, hourIdx: 0, minuteIdx: 0 };
+let pickerDates = []; // [{label, value}]
+let pickerHours = [];
+let pickerMinutes = [];
+
+function buildPickerData() {
+  const now = new Date();
+  // 日期选项：今天、明天、后天...往后 14 天
+  pickerDates = [];
+  const weekNames = ['日','一','二','三','四','五','六'];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const w = weekNames[d.getDay()];
+    let label;
+    if (i === 0) label = '今天 ' + m + '/' + day;
+    else if (i === 1) label = '明天 ' + m + '/' + day;
+    else label = m + '月' + day + '日 周' + w;
+    pickerDates.push({
+      label: label,
+      value: `${d.getFullYear()}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    });
+  }
+  // 小时：00 - 23
+  pickerHours = [];
+  for (let i = 0; i < 24; i++) {
+    pickerHours.push({ label: String(i).padStart(2,'0'), value: i });
+  }
+  // 分钟：00 - 59
+  pickerMinutes = [];
+  for (let i = 0; i < 60; i++) {
+    pickerMinutes.push({ label: String(i).padStart(2,'0'), value: i });
+  }
+}
+
+function initPickerDefaults() {
+  const now = new Date();
+  pickerValue.dateIdx = 0; // 今天
+  pickerValue.hourIdx = (now.getHours() + 1) % 24; // 下一个小时
+  pickerValue.minuteIdx = 0;
+}
+
+function openTimePicker() {
+  buildPickerData();
+  initPickerDefaults();
+  renderPickerColumn('picker-date', pickerDates, pickerValue.dateIdx, 'dateIdx');
+  renderPickerColumn('picker-hour', pickerHours, pickerValue.hourIdx, 'hourIdx');
+  renderPickerColumn('picker-minute', pickerMinutes, pickerValue.minuteIdx, 'minuteIdx');
+  document.getElementById('time-picker-overlay').classList.add('show');
+}
+
+function closeTimePicker() {
+  document.getElementById('time-picker-overlay').classList.remove('show');
+}
+
+function renderPickerColumn(colId, options, selectedIdx, key) {
+  const col = document.getElementById(colId);
+  col.innerHTML = options.map((opt, i) =>
+    `<div class="picker-option${i === selectedIdx ? ' selected' : ''}" data-idx="${i}">${opt.label}</div>`
+  ).join('');
+
+  // 滚动到选中项
+  requestAnimationFrame(() => {
+    const items = col.querySelectorAll('.picker-option');
+    if (items[selectedIdx]) {
+      items[selectedIdx].scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+  });
+
+  // 监听滚动，更新选中状态
+  col.onscroll = () => {
+    const items = col.querySelectorAll('.picker-option');
+    let closest = 0;
+    let minDist = Infinity;
+    const colRect = col.getBoundingClientRect();
+    const centerY = colRect.top + colRect.height / 2;
+    items.forEach((item, i) => {
+      const itemRect = item.getBoundingClientRect();
+      const itemCenter = itemRect.top + itemRect.height / 2;
+      const dist = Math.abs(itemCenter - centerY);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    });
+    // 更新 class
+    items.forEach((item, i) => {
+      item.classList.toggle('selected', i === closest);
+    });
+    pickerValue[key] = closest;
+  };
+}
+
+function confirmTimePicker() {
+  const dateInfo = pickerDates[pickerValue.dateIdx];
+  const hour = pickerHours[pickerValue.hourIdx].label;
+  const minute = pickerMinutes[pickerValue.minuteIdx].label;
+  const isoStr = `${dateInfo.value}T${hour}:${minute}:00`;
+  document.getElementById('reminder-time-btn').dataset.timeValue = isoStr;
+  document.getElementById('reminder-time-display').textContent = dateInfo.label + ' ' + hour + ':' + minute;
+  document.getElementById('reminder-time-btn').classList.add('has-value');
+  closeTimePicker();
+}
+
+function addReminder() {
+  const textInput = document.getElementById('reminder-text-input');
+  const timeBtn = document.getElementById('reminder-time-btn');
+  const text = textInput.value.trim();
+  const time = timeBtn.dataset.timeValue;
+  if (!text) { alert('写一下提醒内容吧～'); return; }
+  if (!time) { alert('请先选择提醒时间～'); return; }
+  state.reminders.push({
+    id: uid(),
+    text: text,
+    time: time,
+    notified: false
+  });
+  textInput.value = '';
+  delete timeBtn.dataset.timeValue;
+  document.getElementById('reminder-time-display').textContent = '点此选择时间';
+  timeBtn.classList.remove('has-value');
+  save();
+  renderReminders();
+  showToast('提醒已设定！');
+}
+
+function deleteReminder(id) {
+  state.reminders = state.reminders.filter(r => r.id !== id);
+  save();
+  renderReminders();
+}
+
+function renderReminders() {
+  const list = document.getElementById('reminder-list');
+  const now = new Date();
+  // Sort: future first, then past
+  const sorted = [...state.reminders].sort((a, b) => new Date(a.time) - new Date(b.time));
+  document.getElementById('reminder-count').textContent = sorted.length + ' 条';
+
+  if (sorted.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">⏰</div>还没有提醒，添加一个吧～</div>`;
+    return;
+  }
+
+  list.innerHTML = sorted.map(r => {
+    const t = new Date(r.time);
+    const isPast = t < now;
+    const timeStr = `${t.getFullYear()}.${t.getMonth()+1}.${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    return `
+    <li class="reminder-item ${isPast ? 'past' : ''}">
+      <span class="reminder-bell ${isPast ? 'past' : ''}">🔔</span>
+      <div class="reminder-info">
+        <div class="reminder-text">${escapeHtml(r.text)}</div>
+        <div class="reminder-time">${timeStr}${isPast ? '（已过期）' : ''}</div>
+      </div>
+      <span class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</span>
+    </li>
+    `;
+  }).join('');
+}
+
+function checkReminders() {
+  const now = new Date();
+  state.reminders.forEach(r => {
+    if (r.notified) return;
+    const t = new Date(r.time);
+    if (t <= now) {
+      r.notified = true;
+      save();
+      // Notify
+      const msgs = [
+        `快去${r.text}！`,
+        `别忘记${r.text}啦！`,
+        `⏰ 该${r.text}了！`
+      ];
+      const msg = msgs[Math.floor(Math.random() * msgs.length)];
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('⏰ 提醒事项', { body: msg });
+      }
+      showToast(msg);
+    }
+  });
+  renderReminders();
+}
+
+// 每分钟检查一次提醒
+setInterval(checkReminders, 30000);
+
+
+// ============ 日记密码锁 ============
+function unlockDiary() {
+  const input = document.getElementById('diary-lock-input');
+  const lock = document.getElementById('diary-lock');
+  if (input.value === '8888') {
+    lock.classList.add('hidden');
+    input.value = '';
+    showToast('日记本解锁成功～');
+  } else {
+    lock.classList.add('diary-lock-shake');
+    setTimeout(() => lock.classList.remove('diary-lock-shake'), 400);
+    input.value = '';
+    showToast('密码不对哦，再试试～');
+  }
+}
+
 // ============ 工具函数 ============
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -2335,7 +2603,8 @@ let timerState = {
   totalSeconds: 0,
   remainingSeconds: 0,
   interval: null,
-  running: false
+  running: false,
+  startTime: 0
 };
 const timerPresets = [25, 60, 90];
 
@@ -2401,6 +2670,7 @@ function startTimer() {
   }
 
   timerState.running = true;
+  timerState.startTime = Date.now();
 
   // Update todo item to show running state
   const item = state[timerState.type].find(t => t.id === timerState.id);
@@ -2414,7 +2684,9 @@ function startTimer() {
 
   updateTimerDisplay();
   timerState.interval = setInterval(() => {
-    timerState.remainingSeconds--;
+    // 基于时间戳计算，避免后台节流导致不准
+    const elapsed = Math.floor((Date.now() - timerState.startTime) / 1000);
+    timerState.remainingSeconds = Math.max(0, timerState.totalSeconds - elapsed);
     updateTimerDisplay();
     updateMiniTimer();
     if (timerState.remainingSeconds <= 0) {
@@ -2601,16 +2873,9 @@ async function initApp() {
   renderCheckin('civil');
   renderCustomNav();
   renderCustomPanels();
+  renderReminders();
   bindNavEvents();
-  updateSyncIndicator();
-
-  // 如果已配置 token，从云端拉取数据
-  const config = getSyncConfig();
-  if (config.token) {
-    document.getElementById('gh-token').value = config.token;
-    document.getElementById('gh-repo').value = config.repo;
-    await pullFromGitHub();
-  }
+  checkReminders();
 }
 
 initApp();
