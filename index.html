@@ -3473,7 +3473,12 @@ function openIeltsTimer(subType, id) {
 }
 
 function openTimer(type, id, subType) {
-  const item = state[type].find(t => t.id === id);
+  let item;
+  if (type === 'ielts' && subType) {
+    item = (state.ielts[subType] || []).find(t => t.id === id);
+  } else {
+    item = state[type].find(t => t.id === id);
+  }
   if (!item) return;
   timerState.type = type;
   timerState.subType = subType || '';
