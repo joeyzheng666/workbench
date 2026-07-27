@@ -1777,11 +1777,48 @@
       </div>
 
       <div class="section-title">📝 今日 To-Do <span class="count" id="ielts-count"></span></div>
-      <div class="todo-input-row">
-        <input type="text" class="todo-input" id="ielts-input" placeholder="添加一项学习任务，回车确认...">
-        <button class="btn" onclick="addTodo('ielts')">添加</button>
+      <div class="ielts-categories">
+        <div class="ielts-cat-card cat-listening" id="cat-listening">
+          <div class="ielts-cat-header"><span><span class="cat-emoji">🎧</span>听力</span><span class="cat-count" id="cat-count-listening">0/0</span></div>
+          <div class="ielts-cat-body">
+            <div class="ielts-cat-input-row">
+              <input type="text" id="ielts-input-listening" placeholder="添加听力任务...">
+              <button onclick="ieltsAddTodo('listening')">添加</button>
+            </div>
+            <ul class="ielts-cat-list" id="ielts-list-listening"></ul>
+          </div>
+        </div>
+        <div class="ielts-cat-card cat-speaking" id="cat-speaking">
+          <div class="ielts-cat-header"><span><span class="cat-emoji">💬</span>口语</span><span class="cat-count" id="cat-count-speaking">0/0</span></div>
+          <div class="ielts-cat-body">
+            <div class="ielts-cat-input-row">
+              <input type="text" id="ielts-input-speaking" placeholder="添加口语任务...">
+              <button onclick="ieltsAddTodo('speaking')">添加</button>
+            </div>
+            <ul class="ielts-cat-list" id="ielts-list-speaking"></ul>
+          </div>
+        </div>
+        <div class="ielts-cat-card cat-reading" id="cat-reading">
+          <div class="ielts-cat-header"><span><span class="cat-emoji">📖</span>阅读</span><span class="cat-count" id="cat-count-reading">0/0</span></div>
+          <div class="ielts-cat-body">
+            <div class="ielts-cat-input-row">
+              <input type="text" id="ielts-input-reading" placeholder="添加阅读任务...">
+              <button onclick="ieltsAddTodo('reading')">添加</button>
+            </div>
+            <ul class="ielts-cat-list" id="ielts-list-reading"></ul>
+          </div>
+        </div>
+        <div class="ielts-cat-card cat-writing" id="cat-writing">
+          <div class="ielts-cat-header"><span><span class="cat-emoji">✏️</span>写作</span><span class="cat-count" id="cat-count-writing">0/0</span></div>
+          <div class="ielts-cat-body">
+            <div class="ielts-cat-input-row">
+              <input type="text" id="ielts-input-writing" placeholder="添加写作任务...">
+              <button onclick="ieltsAddTodo('writing')">添加</button>
+            </div>
+            <ul class="ielts-cat-list" id="ielts-list-writing"></ul>
+          </div>
+        </div>
       </div>
-      <ul class="todo-list" id="ielts-list"></ul>
       <button class="btn-history" onclick="showHistory('ielts')">📋 查看历史</button>
     </section>
 
@@ -1937,12 +1974,256 @@
   </div><!-- /main-wrap -->
 </div>
 
+<style>
+  /* ============ 雅思四分类卡片 ============ */
+  .ielts-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 4px;
+  }
+
+  .ielts-cat-card {
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .ielts-cat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .ielts-cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .ielts-cat-header .cat-emoji {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+
+  .ielts-cat-header .cat-count {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.85;
+    background: rgba(255,255,255,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  .ielts-cat-body {
+    padding: 4px 16px 16px;
+  }
+
+  .ielts-cat-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .ielts-cat-input-row input {
+    flex: 1;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    outline: none;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    transition: all 0.25s;
+  }
+  .ielts-cat-input-row input::placeholder {
+    color: rgba(255,255,255,0.55);
+  }
+  .ielts-cat-input-row input:focus {
+    border-color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.28);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+  }
+
+  .ielts-cat-input-row button {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .ielts-cat-input-row button:hover {
+    background: rgba(255,255,255,0.4);
+  }
+  .ielts-cat-input-row button:active {
+    transform: scale(0.96);
+  }
+
+  .ielts-cat-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ielts-cat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(6px);
+    margin-bottom: 6px;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+  }
+  .ielts-cat-item:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .ielts-cat-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .ielts-cat-item .cat-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.25s;
+    color: transparent;
+  }
+
+  .ielts-cat-item .cat-checkbox.checked {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(255,255,255,0.9);
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .ielts-cat-item .cat-text {
+    flex: 1;
+    word-break: break-word;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .ielts-cat-item.done .cat-text {
+    text-decoration: line-through;
+    opacity: 0.55;
+  }
+
+  .ielts-cat-item .cat-meta {
+    font-size: 10px;
+    opacity: 0.55;
+    white-space: nowrap;
+  }
+
+  .ielts-cat-item .cat-delete {
+    font-size: 14px;
+    opacity: 0.4;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .ielts-cat-item .cat-delete:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.2);
+  }
+
+  .ielts-cat-item .cat-timer-btn {
+    font-size: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    opacity: 0.5;
+    transition: all 0.2s;
+    color: #fff;
+  }
+
+  .ielts-cat-item .cat-timer-btn:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.2);
+  }
+
+  .ielts-cat-item .cat-timer-btn.running {
+    opacity: 1;
+    animation: pulse 1.5s infinite;
+    background: rgba(255,255,255,0.3);
+  }
+
+  .ielts-cat-empty {
+    text-align: center;
+    opacity: 0.5;
+    font-size: 12px;
+    padding: 12px 0;
+    color: #fff;
+  }
+
+  .ielts-cat-item .todo-text-edit {
+    flex: 1;
+    background: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #fff;
+    outline: none;
+  }
+
+  /* ====== 分类渐变色彩 — 自然治愈系 ====== */
+  /* 听力 — 鼠尾草绿 */
+  .ielts-cat-card.cat-listening {
+    background: linear-gradient(145deg, #c6d0b4 0%, #b3bd9f 40%, #9aaa85 100%);
+  }
+  /* 口语 — 橄榄绿 */
+  .ielts-cat-card.cat-speaking {
+    background: linear-gradient(145deg, #7a8b64 0%, #6a7b54 40%, #5a6b44 100%);
+  }
+  /* 阅读 — 灰调暖黄 */
+  .ielts-cat-card.cat-reading {
+    background: linear-gradient(145deg, #d4c896 0%, #c4b67e 40%, #b3a467 100%);
+  }
+  /* 写作 — 淡棕 */
+  .ielts-cat-card.cat-writing {
+    background: linear-gradient(145deg, #c4a98a 0%, #b59875 40%, #a68863 100%);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }</style>
+
 <script>
 // ============ 数据存储 ============
 const STORAGE_KEY = 'workbench_data_v1';
 
 let state = {
-  ielts: [],        // {id, text, done, createdAt}
+  ielts: { listening: [], speaking: [], reading: [], writing: [] },  // {id, text, done, createdAt, completedAt, timerRunning}
   civil: [],
   speaking: [],     // {id, text, createdAt}
   diary: [],        // {id, content, mood, image, date}
@@ -1959,7 +2240,18 @@ let state = {
 function load() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) state = { ...state, ...JSON.parse(saved) };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state = { ...state, ...parsed };
+      // 迁移：旧版 ielts 是数组 → 拆分为四分类对象
+      if (Array.isArray(state.ielts)) {
+        const oldItems = state.ielts;
+        state.ielts = { listening: [], speaking: [], reading: [], writing: [] };
+        // 旧数据全部放入 listening（听力），用户可自行调整
+        state.ielts.listening = oldItems;
+        console.log('已迁移旧的雅思数据到四分类结构');
+      }
+    }
     // 重建自定义板块标题映射
     (state.customPanels || []).forEach(p => {
       panelTitles[p.id] = (p.emoji || '📝') + ' ' + p.name;
@@ -1968,7 +2260,12 @@ function load() {
 }
 
 function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {
+    console.error('保存失败', e);
+    showToast('保存失败，存储空间不足。请尝试删除部分旧数据或压缩图片。');
+  }
 }
 
 // ============ Toast ============
@@ -2110,6 +2407,109 @@ function calcCountdown(targetDate, elementId, cardId) {
 }
 
 // ============ To-Do List ============
+// ============ 雅思四分类 Todo ============
+const IELTS_CATS = ['listening', 'speaking', 'reading', 'writing'];
+
+function ieltsAddTodo(subType) {
+  const input = document.getElementById('ielts-input-' + subType);
+  const text = input.value.trim();
+  if (!text) return;
+  state.ielts[subType].unshift({
+    id: uid(),
+    text: text,
+    done: false,
+    createdAt: new Date().toISOString()
+  });
+  input.value = '';
+  save();
+  renderIeltsTodos();
+}
+
+function ieltsToggleTodo(subType, id) {
+  const item = state.ielts[subType].find(t => t.id === id);
+  if (item) {
+    item.done = !item.done;
+    item.completedAt = item.done ? new Date().toISOString() : null;
+    save();
+    renderIeltsTodos();
+  }
+}
+
+function ieltsDeleteTodo(subType, id) {
+  state.ielts[subType] = state.ielts[subType].filter(t => t.id !== id);
+  save();
+  renderIeltsTodos();
+}
+
+function ieltsEditTodo(subType, id, newText) {
+  const item = state.ielts[subType].find(t => t.id === id);
+  if (item) {
+    item.text = newText.trim() || item.text;
+    save();
+    renderIeltsTodos();
+  }
+}
+
+function renderIeltsTodos() {
+  const emojis = { listening: '🎧', speaking: '💬', reading: '📖', writing: '✏️' };
+  let totalDone = 0, totalAll = 0;
+
+  IELTS_CATS.forEach(subType => {
+    const todos = state.ielts[subType];
+    const list = document.getElementById('ielts-list-' + subType);
+    const done = todos.filter(t => t.done).length;
+    const total = todos.length;
+    totalDone += done;
+    totalAll += total;
+
+    document.getElementById('cat-count-' + subType).textContent = `${done}/${total}`;
+
+    if (todos.length === 0) {
+      list.innerHTML = '<div class="ielts-cat-empty">暂无任务</div>';
+      return;
+    }
+
+    list.innerHTML = todos.map(t => `
+      <li class="ielts-cat-item ${t.done ? 'done' : ''}">
+        <div class="cat-checkbox ${t.done ? 'checked' : ''}" onclick="ieltsToggleTodo('${subType}', '${t.id}')">${t.done ? '✓' : ''}</div>
+        <div class="cat-text" onclick="ieltsStartEdit('${subType}', '${t.id}', this)">${escapeHtml(t.text)}</div>
+        <span class="cat-meta">${formatDate(t.createdAt)}</span>
+        <button class="cat-timer-btn ${t.timerRunning ? 'running' : ''}" onclick="event.stopPropagation();openIeltsTimer('${subType}', '${t.id}')" title="计时">⏱️</button>
+        <span class="cat-delete" onclick="ieltsDeleteTodo('${subType}', '${t.id}')">✕</span>
+      </li>
+    `).join('');
+  });
+
+  document.getElementById('ielts-count').textContent = `${totalDone}/${totalAll} 完成`;
+  document.getElementById('ielts-progress').textContent = `${totalDone} / ${totalAll}`;
+}
+
+function ieltsStartEdit(subType, id, el) {
+  const item = state.ielts[subType].find(t => t.id === id);
+  if (!item || item.done) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'todo-text-edit';
+  input.value = item.text;
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  const finish = () => ieltsEditTodo(subType, id, input.value);
+  input.addEventListener('blur', finish);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') renderIeltsTodos();
+  });
+}
+
+// 回车添加（听力/口语/阅读/写作）
+IELTS_CATS.forEach(subType => {
+  document.getElementById('ielts-input-' + subType).addEventListener('keydown', e => {
+    if (e.key === 'Enter') ieltsAddTodo(subType);
+  });
+});
+
+// ============ 考公 Todo（保持不变） ============
 function addTodo(type) {
   const input = document.getElementById(type + '-input');
   const text = input.value.trim();
@@ -2193,11 +2593,9 @@ function startEditTodo(type, id, el) {
   });
 }
 
-// 回车添加
-['ielts', 'civil'].forEach(type => {
-  document.getElementById(type + '-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTodo(type);
-  });
+// 考公回车添加
+document.getElementById('civil-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTodo('civil');
 });
 
 // ============ 每日打卡 ============
@@ -2280,15 +2678,28 @@ function addPhraseImage(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function() {
-    pendingPhraseImage = reader.result;
-    state.speaking.unshift({
-      id: uid(),
-      text: '',
-      image: reader.result,
-      createdAt: new Date().toISOString()
-    });
-    save();
-    renderPhrase();
+    // 压缩后再存储
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxW = 800;
+      const scale = Math.min(1, maxW / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      pendingPhraseImage = compressed;
+      state.speaking.unshift({
+        id: uid(),
+        text: '',
+        image: compressed,
+        createdAt: new Date().toISOString()
+      });
+      save();
+      renderPhrase();
+    };
+    img.src = reader.result;
   };
   reader.readAsDataURL(file);
   e.target.value = '';
@@ -2380,8 +2791,8 @@ const DAILY_EXPRESSIONS_POOL = [
     translation: '要我说，旅行是开拓眼界最好的方式之一。（适合 Part1/3 表态）'
   },
   {
-    pattern: 'I'd say...',
-    example: 'I'd say my favourite way to unwind is just curling up on the sofa with a good book.',
+    pattern: "I'd say...",
+    example: "I'd say my favourite way to unwind is just curling up on the sofa with a good book.",
     translation: '要我说，最喜欢的放松方式就是窝在沙发上看本好书。（Part1 个人偏好）'
   },
   {
@@ -2390,13 +2801,13 @@ const DAILY_EXPRESSIONS_POOL = [
     translation: '在我看来，现在的人比以往任何时候都更注重健康。（委婉表态，自然不武断）'
   },
   {
-    pattern: 'I'm a big fan of...',
-    example: 'I'm a big fan of basketball — I try to catch a game at least once a week.',
+    pattern: "I'm a big fan of...",
+    example: "I'm a big fan of basketball — I try to catch a game at least once a week.",
     translation: '我超喜欢篮球——每周至少看一场比赛。（Part1 表达喜好）'
   },
   {
-    pattern: 'There's no denying that...',
-    example: 'There's no denying that technology has transformed the way we communicate.',
+    pattern: "There's no denying that...",
+    example: "There's no denying that technology has transformed the way we communicate.",
     translation: '不可否认，科技已经彻底改变了我们的沟通方式。（高分万能开头）'
   },
 
@@ -2468,8 +2879,8 @@ const DAILY_EXPRESSIONS_POOL = [
     translation: '我习惯晚饭后散步——帮助消化也清空脑子。（Part1 日常习惯）'
   },
   {
-    pattern: 'It wasn't until recently that...',
-    example: 'It wasn't until recently that I realised how much plastic waste I was producing every week.',
+    pattern: "It wasn't until recently that...",
+    example: "It wasn't until recently that I realised how much plastic waste I was producing every week.",
     translation: '直到最近我才意识到自己每周产生了多少塑料垃圾。（强调句式，印象深刻）'
   },
 
@@ -2531,8 +2942,8 @@ const DAILY_EXPRESSIONS_POOL = [
     translation: '在某种程度上，竞争是有益的，但过度竞争适得其反。'
   },
   {
-    pattern: 'That's not to say that...',
-    example: 'Technology makes life easier. That's not to say that we should rely on it for everything.',
+    pattern: "That's not to say that...",
+    example: "Technology makes life easier. That's not to say that we should rely on it for everything.",
     translation: '科技让生活更便利。但这并不是说我们就应该事事依赖它。（精确限定观点，高分思维）'
   },
   {
@@ -2543,8 +2954,8 @@ const DAILY_EXPRESSIONS_POOL = [
 
   // ----- 假设 / 建议 -----
   {
-    pattern: 'If I had to choose, I'd go for...',
-    example: 'If I had to choose between city life and country life, I'd go for the countryside.',
+    pattern: "If I had to choose, I'd go for...",
+    example: "If I had to choose between city life and country life, I'd go for the countryside.",
     translation: '如果非得选的话，城市生活和乡村生活之间我会选乡村。（Part1/2 选择题万能）'
   },
   {
@@ -2553,8 +2964,8 @@ const DAILY_EXPRESSIONS_POOL = [
     translation: '我真希望城市里有更多绿地——我们真的很需要放松的地方。'
   },
   {
-    pattern: 'It wouldn't hurt to...',
-    example: 'It wouldn't hurt to learn some basic cooking skills — you never know when they'll come in handy.',
+    pattern: "It wouldn't hurt to...",
+    example: "It wouldn't hurt to learn some basic cooking skills — you never know when they'll come in handy.",
     translation: '学点基本的烹饪技能也没坏处——你永远不知道什么时候会派上用场。'
   },
 
@@ -2582,8 +2993,8 @@ const DAILY_EXPRESSIONS_POOL = [
 
   // ----- 情感表达 -----
   {
-    pattern: 'I can't thank them enough for...',
-    example: 'I can't thank my parents enough for always supporting my decisions, even when they disagreed.',
+    pattern: "I can't thank them enough for...",
+    example: "I can't thank my parents enough for always supporting my decisions, even when they disagreed.",
     translation: '我永远无法感谢够我父母，即使他们不同意也始终支持我的决定。'
   },
   {
@@ -2592,8 +3003,8 @@ const DAILY_EXPRESSIONS_POOL = [
     translation: '没什么比在山顶醒来看到令人窒息日出的感觉更棒了。'
   },
   {
-    pattern: 'It's something I hold dear.',
-    example: 'That old watch from my grandfather is something I hold dear — it reminds me of his wisdom.',
+    pattern: "It's something I hold dear.",
+    example: "That old watch from my grandfather is something I hold dear — it reminds me of his wisdom.",
     translation: '爷爷给我的那块旧表是我很珍视的东西——它让我想起他的智慧。'
   }
 ];
@@ -2711,8 +3122,21 @@ function addDiaryImage(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function() {
-    pendingDiaryImage = reader.result;
-    document.getElementById('diary-img-preview').innerHTML = `<img src="${reader.result}" style="max-width:200px;border-radius:10px;">`;
+    // 压缩图片后再存储，避免 localStorage 超限
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxW = 800;
+      const scale = Math.min(1, maxW / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+      pendingDiaryImage = compressed;
+      document.getElementById('diary-img-preview').innerHTML = `<img src="${compressed}" style="max-width:200px;border-radius:10px;">`;
+    };
+    img.src = reader.result;
   };
   reader.readAsDataURL(file);
   e.target.value = '';
@@ -3034,6 +3458,7 @@ function updateTodayDate() {
 // ============ 番茄钟计时器 ============
 let timerState = {
   type: '',
+  subType: '',   // for ielts: 'listening'|'speaking'|'reading'|'writing'
   id: '',
   totalSeconds: 0,
   remainingSeconds: 0,
@@ -3043,10 +3468,15 @@ let timerState = {
 };
 const timerPresets = [25, 60, 90];
 
-function openTimer(type, id) {
+function openIeltsTimer(subType, id) {
+  openTimer('ielts', id, subType);
+}
+
+function openTimer(type, id, subType) {
   const item = state[type].find(t => t.id === id);
   if (!item) return;
   timerState.type = type;
+  timerState.subType = subType || '';
   timerState.id = id;
   timerState.totalSeconds = 25 * 60;
   timerState.remainingSeconds = 25 * 60;
@@ -3108,8 +3538,8 @@ function startTimer() {
   timerState.startTime = Date.now();
 
   // Update todo item to show running state
-  const item = state[timerState.type].find(t => t.id === timerState.id);
-  if (item) { item.timerRunning = true; renderTodo(timerState.type); }
+  const item = getTimerTodoItem();
+  if (item) { item.timerRunning = true; renderTimerTodo(); }
 
   const actionsEl = document.getElementById('timer-actions');
   actionsEl.innerHTML = `
@@ -3137,8 +3567,8 @@ function startTimer() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('⏰ 时间到！', { body: timerState.type === 'ielts' ? '雅思任务完成，休息一下吧' : '考公任务完成！' });
       }
-      const item2 = state[timerState.type].find(t => t.id === timerState.id);
-      if (item2) { item2.timerRunning = false; renderTodo(timerState.type); }
+      const item2 = getTimerTodoItem();
+      if (item2) { item2.timerRunning = false; renderTimerTodo(); }
       document.getElementById('timer-actions').innerHTML = `
         <button class="timer-cancel" onclick="closeTimer()">关闭</button>
       `;
@@ -3149,8 +3579,8 @@ function startTimer() {
 function stopTimer() {
   if (timerState.interval) { clearInterval(timerState.interval); timerState.interval = null; }
   timerState.running = false;
-  const item = state[timerState.type].find(t => t.id === timerState.id);
-  if (item) { item.timerRunning = false; renderTodo(timerState.type); }
+  const item = getTimerTodoItem();
+  if (item) { item.timerRunning = false; renderTimerTodo(); }
   document.getElementById('timer-actions').innerHTML = `
     <button class="timer-cancel" onclick="closeTimer()">关闭</button>
     <button class="timer-start" id="timer-start-btn" onclick="startTimer()">继续</button>
@@ -3166,8 +3596,8 @@ function closeTimer(e) {
   }
   if (timerState.interval) { clearInterval(timerState.interval); timerState.interval = null; }
   timerState.running = false;
-  const item = state[timerState.type] && state[timerState.type].find(t => t.id === timerState.id);
-  if (item) { item.timerRunning = false; renderTodo(timerState.type); }
+  const item = getTimerTodoItem();
+  if (item) { item.timerRunning = false; renderTimerTodo(); }
   document.getElementById('timer-overlay').classList.remove('show');
 }
 
@@ -3201,6 +3631,18 @@ function updateMiniTimer() {
     mini.className = 'timer-mini show';
   }
 }
+function getTimerTodoItem() {
+  if (timerState.type === 'ielts' && timerState.subType) {
+    return (state.ielts[timerState.subType] || []).find(t => t.id === timerState.id);
+  }
+  return (state[timerState.type] || []).find(t => t.id === timerState.id);
+}
+
+function renderTimerTodo() {
+  if (timerState.type === 'ielts') renderIeltsTodos();
+  else renderTodo(timerState.type);
+}
+
 function playBeep() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3237,7 +3679,18 @@ document.getElementById('timer-custom').addEventListener('input', function() {
 
 // ============ 历史回顾 ============
 function showHistory(type) {
-  const todos = state[type];
+  let todos;
+  if (type === 'ielts') {
+    // 聚合听说读写四个分类
+    todos = [
+      ...(state.ielts.listening || []),
+      ...(state.ielts.speaking || []),
+      ...(state.ielts.reading || []),
+      ...(state.ielts.writing || [])
+    ];
+  } else {
+    todos = state[type];
+  }
   // Group completed items by date
   const completed = todos.filter(t => t.done && t.completedAt);
   if (completed.length === 0) {
@@ -3300,7 +3753,7 @@ async function initApp() {
   calcCountdown(new Date('2026-08-15'), 'ielts-countdown', 'ielts-date-card');
   calcCountdown(new Date('2026-12-07'), 'civil-countdown', 'civil-date-card');
   updateTodayDate();
-  renderTodo('ielts');
+  renderIeltsTodos();
   renderTodo('civil');
   renderPhrase();
   renderDailyExpressions();
