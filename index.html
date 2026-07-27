@@ -623,6 +623,130 @@
     color: var(--text-muted);
   }
 
+  /* ============ 每日地道表达 ============ */
+  .daily-expr-card {
+    background: linear-gradient(135deg, #1a3c2a 0%, #2d5a3f 50%, #1e4d33 100%);
+    border-radius: 16px;
+    padding: 20px 18px;
+    margin-bottom: 20px;
+    color: #e8f5e9;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(26, 60, 42, 0.3);
+  }
+  .daily-expr-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+  .daily-expr-card::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 50%;
+  }
+  .daily-expr-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .daily-expr-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #c8e6c9;
+    letter-spacing: 0.5px;
+  }
+  .daily-expr-date {
+    font-size: 11px;
+    color: #81c784;
+  }
+  .daily-expr-refresh {
+    margin-left: auto;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #c8e6c9;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  .daily-expr-refresh:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.3);
+  }
+  .daily-expr-refresh:active { transform: scale(0.9) rotate(30deg); }
+  .daily-expr-item {
+    background: rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    transition: background 0.2s;
+  }
+  .daily-expr-item:last-child { margin-bottom: 0; }
+  .daily-expr-item:hover { background: rgba(255,255,255,0.12); }
+  .daily-expr-pattern {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .daily-expr-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.15);
+    font-size: 11px;
+    font-weight: 700;
+    color: #c8e6c9;
+    flex-shrink: 0;
+  }
+  .daily-expr-example {
+    font-size: 13px;
+    color: #c8e6c9;
+    line-height: 1.6;
+    margin-bottom: 6px;
+    padding-left: 30px;
+  }
+  .daily-expr-translation {
+    font-size: 12px;
+    color: #81c784;
+    padding-left: 30px;
+    line-height: 1.5;
+  }
+  .daily-expr-speak {
+    cursor: pointer;
+    font-size: 15px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+  .daily-expr-speak:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+  .daily-expr-speak:active { transform: scale(0.9); }
+
   .phrase-delete {
     cursor: pointer;
     color: var(--text-light);
@@ -1674,6 +1798,7 @@
         <button class="btn" onclick="addPhrase()">添加</button>
       </div>
       <div class="section-title">🗂️ 我的积累 <span class="count" id="speaking-count"></span></div>
+      <div class="daily-expr-card" id="daily-expressions"></div>
       <div class="phrase-grid" id="speaking-grid"></div>
     </section>
 
@@ -1823,6 +1948,7 @@ let state = {
   diary: [],        // {id, content, mood, image, date}
   customPanels: [], // {id, name, emoji, content}
   reminders: [],    // {id, text, time, notified}
+  dailyExprRefresh: 0, // 每日表达刷新计数
   currentMood: '',
   checkin: {        // 打卡数据
     ielts: { lastDate: '', streak: 0, history: [] },
@@ -2244,6 +2370,315 @@ function startEditPhrase(id, el) {
 document.getElementById('speaking-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') addPhrase();
 });
+
+// ============ 每日地道表达 ============
+const DAILY_EXPRESSIONS_POOL = [
+  // ----- 观点表达 / 表态 -----
+  {
+    pattern: 'If you ask me, ...',
+    example: 'If you ask me, traveling is one of the best ways to broaden your horizons.',
+    translation: '要我说，旅行是开拓眼界最好的方式之一。（适合 Part1/3 表态）'
+  },
+  {
+    pattern: 'I'd say...',
+    example: 'I'd say my favourite way to unwind is just curling up on the sofa with a good book.',
+    translation: '要我说，最喜欢的放松方式就是窝在沙发上看本好书。（Part1 个人偏好）'
+  },
+  {
+    pattern: 'It seems to me that...',
+    example: 'It seems to me that people nowadays are more health-conscious than ever before.',
+    translation: '在我看来，现在的人比以往任何时候都更注重健康。（委婉表态，自然不武断）'
+  },
+  {
+    pattern: 'I'm a big fan of...',
+    example: 'I'm a big fan of basketball — I try to catch a game at least once a week.',
+    translation: '我超喜欢篮球——每周至少看一场比赛。（Part1 表达喜好）'
+  },
+  {
+    pattern: 'There's no denying that...',
+    example: 'There's no denying that technology has transformed the way we communicate.',
+    translation: '不可否认，科技已经彻底改变了我们的沟通方式。（高分万能开头）'
+  },
+
+  // ----- 原因解释 -----
+  {
+    pattern: 'The main reason is that...',
+    example: 'The main reason is that public transport is far more eco-friendly than driving.',
+    translation: '主要原因在于公共交通比开车环保得多。（Part1/3 解释原因）'
+  },
+  {
+    pattern: 'This is largely because...',
+    example: 'This is largely because social media has made it so easy to stay in touch with friends.',
+    translation: '这很大程度是因为社交媒体让和朋友保持联系变得太容易了。（自然过渡因果）'
+  },
+  {
+    pattern: 'What makes it so... is that...',
+    example: 'What makes it so popular is that you can access everything right from your phone.',
+    translation: '它之所以这么受欢迎，是因为你可以用手机搞定一切。（强调句式，加分项）'
+  },
+
+  // ----- 举例说明 -----
+  {
+    pattern: 'A good case in point is...',
+    example: 'A good case in point is my hometown, where air quality has improved significantly.',
+    translation: '一个很好的例子是我的家乡，那里的空气质量有了显著改善。（比 for example 高级）'
+  },
+  {
+    pattern: 'Take ... for example.',
+    example: 'Take my last trip abroad for example — I learned more in two weeks than in a year of classes.',
+    translation: '以我上次出国旅行为例——两周学会的东西比一年课堂还多。（雅思常见举例方式）'
+  },
+  {
+    pattern: '... is a classic example.',
+    example: 'Single-use plastics are a classic example of how convenience comes at an environmental cost.',
+    translation: '一次性塑料是便利以环境代价换取的典型例子。（环境类话题直接加分）'
+  },
+
+  // ----- 对比 / 转折 -----
+  {
+    pattern: 'On the bright side, ...',
+    example: 'On the bright side, even though my job keeps me busy, I do get to travel quite a bit.',
+    translation: '往好处想，虽然工作很忙，但确实有不少出差机会。（Part1 积极表达）'
+  },
+  {
+    pattern: 'On the one hand... on the other hand...',
+    example: 'On the one hand, cities offer more job opportunities. On the other hand, the cost of living is sky-high.',
+    translation: '一方面城市提供更多工作机会，另一方面生活成本高得吓人。（讨论优缺点万能模板）'
+  },
+  {
+    pattern: 'I used to... but now...',
+    example: 'I used to hate getting up early, but now I actually enjoy the quiet morning hours.',
+    translation: '我以前很讨厌早起，但现在还挺享受清晨的安静时光。（Part1 个人变化）'
+  },
+  {
+    pattern: 'In contrast, ...',
+    example: 'Older generations valued stability. In contrast, millennials tend to prioritise experiences over security.',
+    translation: '老一辈看重稳定。对比之下，千禧一代更倾向于把体验放在安全之前。（代际话题）'
+  },
+
+  // ----- 趋势 / 变化 -----
+  {
+    pattern: 'More often than not, ...',
+    example: 'More often than not, I end up ordering takeaway because I\'m too tired to cook.',
+    translation: '多数时候我最后都是点外卖，因为累得不想做饭。（Part1 频率表达）'
+  },
+  {
+    pattern: 'I tend to...',
+    example: 'I tend to go for a walk after dinner — it helps me digest and clears my mind.',
+    translation: '我习惯晚饭后散步——帮助消化也清空脑子。（Part1 日常习惯）'
+  },
+  {
+    pattern: 'It wasn't until recently that...',
+    example: 'It wasn't until recently that I realised how much plastic waste I was producing every week.',
+    translation: '直到最近我才意识到自己每周产生了多少塑料垃圾。（强调句式，印象深刻）'
+  },
+
+  // ----- 经历描述 -----
+  {
+    pattern: 'It was a real eye-opener.',
+    example: 'Visiting the recycling plant was a real eye-opener — I had no idea how much waste we generate.',
+    translation: '那次参观回收厂真是让我大开眼界——我完全不知道我们产生了这么多垃圾。'
+  },
+  {
+    pattern: 'I still remember vividly that...',
+    example: 'I still remember vividly that my first English teacher encouraged me to speak without fear.',
+    translation: '我至今仍清晰地记得我的第一位英语老师鼓励我大胆开口说。'
+  },
+  {
+    pattern: 'Looking back, ...',
+    example: 'Looking back, I think my parents were right to push me to learn a musical instrument.',
+    translation: '回头看，我觉得我爸妈当年逼我学乐器是对的。'
+  },
+  {
+    pattern: 'It was one of those moments when...',
+    example: 'It was one of those moments when you realise how precious time with family really is.',
+    translation: '那一瞬间你意识到和家人在一起的时光有多么珍贵。'
+  },
+
+  // ----- 概括总结 -----
+  {
+    pattern: 'I\'m quite into...',
+    example: 'I\'m quite into photography at the moment — it makes me notice beautiful details everywhere.',
+    translation: '我最近挺迷摄影的——它让我到处注意美丽细节。（Part1 兴趣爱好）'
+  },
+  {
+    pattern: 'When all is said and done, ...',
+    example: 'When all is said and done, what really matters is that you enjoy what you do.',
+    translation: '归根结底，真正重要的是你享受自己所做的事。'
+  },
+
+  // ----- 强调 / 递进 -----
+  {
+    pattern: 'What I find particularly... is that...',
+    example: 'What I find particularly fascinating is that languages evolve so quickly in the digital age.',
+    translation: '让我觉得特别有趣的是，数字时代的语言演变如此之快。'
+  },
+  {
+    pattern: 'Not only... but also...',
+    example: 'Not only does regular exercise keep you fit, but it also boosts your mental wellbeing.',
+    translation: '规律锻炼不仅让你保持身材，还能提升心理健康。（倒装结构，7分句型）'
+  },
+  {
+    pattern: 'The thing that strikes me most is...',
+    example: 'The thing that strikes me most is how kind and welcoming the local people were.',
+    translation: '最让我印象深刻的是当地人有多么热情好客。'
+  },
+
+  // ----- 让步 / 限定 -----
+  {
+    pattern: 'To a certain extent, ...',
+    example: 'To a certain extent, competition can be healthy, but too much of it is counterproductive.',
+    translation: '在某种程度上，竞争是有益的，但过度竞争适得其反。'
+  },
+  {
+    pattern: 'That's not to say that...',
+    example: 'Technology makes life easier. That's not to say that we should rely on it for everything.',
+    translation: '科技让生活更便利。但这并不是说我们就应该事事依赖它。（精确限定观点，高分思维）'
+  },
+  {
+    pattern: 'I can\'t imagine life without...',
+    example: 'I can\'t imagine life without my headphones — I literally use them every single day.',
+    translation: '无法想象没有耳机的生活——我真的每天都用。（Part1 依赖/喜好）'
+  },
+
+  // ----- 假设 / 建议 -----
+  {
+    pattern: 'If I had to choose, I'd go for...',
+    example: 'If I had to choose between city life and country life, I'd go for the countryside.',
+    translation: '如果非得选的话，城市生活和乡村生活之间我会选乡村。（Part1/2 选择题万能）'
+  },
+  {
+    pattern: 'I wish there were more...',
+    example: 'I wish there were more green spaces in my city — we really need places to unwind.',
+    translation: '我真希望城市里有更多绿地——我们真的很需要放松的地方。'
+  },
+  {
+    pattern: 'It wouldn't hurt to...',
+    example: 'It wouldn't hurt to learn some basic cooking skills — you never know when they'll come in handy.',
+    translation: '学点基本的烹饪技能也没坏处——你永远不知道什么时候会派上用场。'
+  },
+
+  // ----- 抽象 / 深度 -----
+  {
+    pattern: 'I\'ve recently taken up...',
+    example: 'I\'ve recently taken up yoga, and I have to say it\'s done wonders for my flexibility.',
+    translation: '我最近开始练瑜伽了，不得不说它对柔韧性帮助太大了。（Part1 新尝试）'
+  },
+  {
+    pattern: 'It all boils down to...',
+    example: 'It all boils down to personal preference — some love routine, others crave change.',
+    translation: '归根结底还是个人喜好——有人爱规律，有人追变化。'
+  },
+  {
+    pattern: 'The way I see it now is quite different from...',
+    example: 'The way I see it now is quite different from how I felt as a teenager.',
+    translation: '现在我对此的看法和青少年时期很不一样了。（观点变化，展现思维深度）'
+  },
+  {
+    pattern: 'To be perfectly honest, ...',
+    example: 'To be perfectly honest, I\'m not really a morning person — I need at least two cups of coffee.',
+    translation: '老实说，我真不是早起型人——至少两杯咖啡才行。（Part1 自然回应）'
+  },
+
+  // ----- 情感表达 -----
+  {
+    pattern: 'I can't thank them enough for...',
+    example: 'I can't thank my parents enough for always supporting my decisions, even when they disagreed.',
+    translation: '我永远无法感谢够我父母，即使他们不同意也始终支持我的决定。'
+  },
+  {
+    pattern: 'Nothing beats...',
+    example: 'Nothing beats the feeling of waking up to a breathtaking sunrise on a mountain top.',
+    translation: '没什么比在山顶醒来看到令人窒息日出的感觉更棒了。'
+  },
+  {
+    pattern: 'It's something I hold dear.',
+    example: 'That old watch from my grandfather is something I hold dear — it reminds me of his wisdom.',
+    translation: '爷爷给我的那块旧表是我很珍视的东西——它让我想起他的智慧。'
+  }
+];
+
+function getDailySeed() {
+  const now = new Date();
+  const dateStr = now.getFullYear() + '-' + 
+    String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(now.getDate()).padStart(2, '0');
+  return dateStr + '#' + (state.dailyExprRefresh || 0);
+}
+
+function pickDailyExpressions() {
+  const seed = getDailySeed();
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const pool = [...DAILY_EXPRESSIONS_POOL];
+  const selected = [];
+  const rng = seedRandom(Math.abs(hash));
+  for (let i = 0; i < 3; i++) {
+    const idx = Math.floor(rng() * pool.length);
+    selected.push(pool.splice(idx, 1)[0]);
+  }
+  return selected;
+}
+
+function seedRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function speakDailyExpr(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-GB';
+  u.rate = 0.85;
+  u.pitch = 1;
+  const voices = speechSynthesis.getVoices();
+  const gb = voices.find(v => v.lang.startsWith('en-GB'));
+  if (gb) u.voice = gb;
+  speechSynthesis.speak(u);
+}
+
+function renderDailyExpressions() {
+  const container = document.getElementById('daily-expressions');
+  if (!container) return;
+  const expressions = pickDailyExpressions();
+  const dateStr = getDailySeed();
+  const now = new Date();
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const dateLabel = (now.getMonth() + 1) + '/' + now.getDate() + ' ' + weekdays[now.getDay()];
+
+  container.innerHTML = `
+    <div class="daily-expr-header">
+      <span style="font-size:18px;">🗣️</span>
+      <span class="daily-expr-title">今日地道表达 <span style="font-size:10px;color:#81c784;font-weight:400;">· 雅思口语</span></span>
+      <span class="daily-expr-date">📅 ${dateLabel}</span>
+      <button class="daily-expr-refresh" onclick="refreshDailyExpressions()" title="换一组">🔄</button>
+    </div>
+    ${expressions.map((e, i) => `
+      <div class="daily-expr-item">
+        <div class="daily-expr-pattern">
+          <span class="daily-expr-index">${i + 1}</span>
+          <span>${escapeHtml(e.pattern)}</span>
+          <span class="daily-expr-speak" onclick="speakDailyExpr('${escapeHtml(e.example).replace(/'/g, "\\'")}')" title="英式朗读">🔊</span>
+        </div>
+        <div class="daily-expr-example">${escapeHtml(e.example)}</div>
+        <div class="daily-expr-translation">${e.translation}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function refreshDailyExpressions() {
+  state.dailyExprRefresh = (state.dailyExprRefresh || 0) + 1;
+  save();
+  renderDailyExpressions();
+}
 
 // ============ 日记 ============
 function addDiary() {
@@ -2868,6 +3303,7 @@ async function initApp() {
   renderTodo('ielts');
   renderTodo('civil');
   renderPhrase();
+  renderDailyExpressions();
   renderDiary();
   renderCheckin('ielts');
   renderCheckin('civil');
