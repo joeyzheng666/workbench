@@ -1,10 +1,13 @@
-const CACHE_NAME = 'workbench-v3';
+const CACHE_NAME = 'workbench-v4';
 const ASSETS = [
   '.',
   'index.html',
   'manifest.json',
   'icons/icon-192.png',
-  'icons/icon-512.png'
+  'icons/icon-512.png',
+  'icons/apple-touch-icon.png',
+  'icons/favicon-32.png',
+  'icons/favicon-16.png'
 ];
 
 // 安装：预缓存核心资源
