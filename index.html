@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 桌面/浏览器图标 -->
+<link rel="icon" type="image/png" href="favicon.png">
+<!-- iOS 添加到主屏幕图标 -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="工作台">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1e4d3f">
+<title>我的工作台</title>
+<style>
+  :root {
+    --bg: #f7f6f2;                    /* 米白/浅灰背景 */
+    --bg-warm: #f0eee8;               /* 米灰辅助 */
+    --sidebar-bg: #1e4d3f;            /* 墨绿侧边栏 */
+    --sidebar-bg-light: #275c4c;
+    --card-bg: #ffffff;               /* 纯白卡片 */
+    --primary: #1e4d3f;               /* 墨绿主色 */
+    --primary-light: #e8f3ef;         /* 浅绿背景 */
+    --primary-lighter: #f1f7f4;       /* 更浅的绿 */
+    --primary-dark: #14382d;          /* 深墨绿 */
+    --accent: #2d8a6e;                /* 亮一点的绿 */
+    --text: #2c2c2c;                  /* 深灰黑文字 */
+    --text-light: #6e7a72;            /* 柔和灰绿 */
+    --text-muted: #9aaa9f;            /* 更浅文字 */
+    --border: #e8e6df;                /* 米灰边框 */
+    --success: #1e4d3f;
+    --danger: #c45c4a;
+    --warning: #d4a03d;
+    --shadow: 0 2px 8px rgba(30, 77, 63, 0.06);
+    --shadow-hover: 0 6px 20px rgba(30, 77, 63, 0.1);
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+  }
+
+  /* ============ 顶部栏 ============ */
+  .topbar {
+    height: 56px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 14px;
+    flex-shrink: 0;
+    z-index: 50;
+  }
+
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s;
+  }
+
+  .hamburger:hover { background: var(--primary-lighter); }
+
+  .hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  .hamburger.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .topbar-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  /* ============ 主内容容器 ============ */
+  .main-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-overflow-scrolling: touch; /* iOS 顺滑滚动 */
+  }
+
+  /* ============ 侧边栏（抽屉式） ============ */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    flex-shrink: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 40, 32, 0.4);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 99;
+  }
+
+  .sidebar-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .logo {
+    padding: 0 24px 24px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo-close {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .logo-close:hover { background: rgba(255,255,255,0.2); }
+
+  .nav-item {
+    padding: 14px 24px;
+    margin: 4px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    border-radius: 12px;
+    transition: all 0.2s;
+    border-left: none;
+    user-select: none;
+  }
+
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #ffffff;
+  }
+
+  .nav-item.active {
+    background: #ffffff;
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .nav-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+  }
+
+  /* ============ 主内容区 ============ */
+  .main {
+    padding: 32px 48px 64px;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 100%;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .panel-header {
+    margin-bottom: 24px;
+  }
+
+  .panel-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--primary);
+  }
+
+  .panel-subtitle {
+    color: var(--text-light);
+    font-size: 14px;
+  }
+
+  /* ============ 考试信息卡 ============ */
+  .exam-info {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .info-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--primary);
+  }
+
+  .info-card.urgent::before { background: var(--danger); }
+  .info-card.warning::before { background: var(--warning); }
+
+  /* 合并版考试信息卡（雅思用） */
+  .info-card-combined {
+    display: flex;
+    align-items: stretch;
+    padding: 26px 32px;
+    gap: 0;
+    background: linear-gradient(135deg, #1e4d3f 0%, #2d8a6e 100%);
+    color: #ffffff;
+    border: none;
+  }
+
+  /* 去掉左侧装饰条 */
+  .info-card-combined::before { display: none; }
+
+  .info-card-combined .info-label {
+    color: rgba(255,255,255,0.75);
+  }
+
+  .info-card-combined .info-value {
+    color: #ffffff;
+  }
+
+  .info-card-combined .info-extra {
+    color: rgba(255,255,255,0.85);
+  }
+
+  .info-card-combined .countdown {
+    color: #ffffff;
+  }
+
+  .info-card-combined .info-divider {
+    background: rgba(255,255,255,0.2);
+  }
+
+  .info-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .info-divider {
+    width: 1px;
+    background: var(--border);
+    margin: 4px 28px;
+    align-self: stretch;
+  }
+
+  .info-label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .info-value {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .info-extra {
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
+  .countdown {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .countdown.urgent { color: var(--danger); }
+  .countdown.warning { color: var(--warning); }
+
+  /* ============ To-do List ============ */
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 28px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+  }
+
+  .section-title .count {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: normal;
+    background: var(--primary-lighter);
+    padding: 3px 12px;
+    border-radius: 20px;
+  }
+
+  .todo-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .todo-input {
+    flex: 1;
+    padding: 13px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    font-family: inherit;
+  }
+
+  .todo-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--primary-light); }
+
+  .btn {
+    padding: 12px 22px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: white;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--bg); }
+
+  .todo-list {
+    list-style: none;
+  }
+
+  .todo-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+  }
+
+  .todo-item:hover { box-shadow: var(--shadow-hover); }
+
+  .todo-item.done {
+    opacity: 0.6;
+  }
+
+  .todo-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .todo-checkbox.checked {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+
+  .todo-checkbox.checked::after {
+    content: '✓';
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .todo-text {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.5;
+    cursor: pointer;
+    word-break: break-word;
+  }
+
+  .todo-item.done .todo-text {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+
+  .todo-text-edit {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--primary);
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .todo-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .todo-delete {
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 16px;
+    opacity: 0;
+  }
+
+  .todo-item:hover .todo-delete { opacity: 1; }
+  .todo-delete:hover { color: var(--danger); background: #fdf2f0; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+
+  .empty-state .emoji {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  /* ============ 口语积累 ============ */
+  .phrase-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .phrase-input {
+    flex: 1;
+    padding: 13px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    font-family: inherit;
+  }
+
+  .phrase-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--primary-light); }
+
+  .phrase-grid {
+    columns: 2;
+    column-gap: 18px;
+  }
+
+  .phrase-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+    break-inside: avoid;
+    box-shadow: var(--shadow);
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .phrase-card:hover { box-shadow: var(--shadow-hover); }
+
+  .phrase-text {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .phrase-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .phrase-delete {
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    opacity: 0;
+  }
+
+  .phrase-card:hover .phrase-delete { opacity: 1; }
+  .phrase-delete:hover { color: var(--danger); background: #fdf2f0; }
+
+  .phrase-text-edit {
+    width: 100%;
+    padding: 10px;
+    border: 1.5px solid var(--primary);
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  /* ============ 日记 ============ */
+  .diary-input {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .diary-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.7;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+
+  .diary-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--primary-light); }
+
+  .diary-input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .diary-date {
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
+  .diary-mood {
+    display: flex;
+    gap: 8px;
+  }
+
+  .mood-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .mood-btn:hover { transform: scale(1.1); border-color: var(--accent); }
+  .mood-btn.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    transform: scale(1.1);
+  }
+
+  .diary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .diary-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+  }
+
+  .diary-card:hover { box-shadow: var(--shadow-hover); }
+
+  .diary-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .diary-card-date {
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+  }
+
+  .diary-card-mood { font-size: 18px; }
+
+  .diary-card-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .diary-action {
+    cursor: pointer;
+    color: var(--text-light);
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .diary-action:hover { color: var(--primary); background: var(--primary-light); }
+  .diary-action.delete:hover { color: var(--danger); background: #fdf2f0; }
+
+  .diary-card-content {
+    font-size: 15px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .diary-card-edit {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1.5px solid var(--primary);
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.7;
+    outline: none;
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  /* ============ 滚动条 ============ */
+  .main-wrap::-webkit-scrollbar { width: 8px; }
+  .main-wrap::-webkit-scrollbar-track { background: transparent; }
+  .main-wrap::-webkit-scrollbar-thumb { background: #c5cdc6; border-radius: 4px; }
+  .main-wrap::-webkit-scrollbar-thumb:hover { background: #9aaa9f; }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 768px) {
+    .main { padding: 20px 20px 64px; }
+    .topbar { padding: 0 14px; }
+    .topbar-title { font-size: 15px; }
+    .exam-info { flex-direction: column; }
+    .info-card-combined {
+      flex-direction: column;
+      gap: 0;
+      padding: 18px 20px;
+    }
+    .info-divider {
+      width: 100%;
+      height: 1px;
+      margin: 14px 0;
+    }
+    .phrase-grid { columns: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 遮罩层 -->
+  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- 侧边栏（抽屉式） -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <span>📚 工作台</span>
+      <button class="logo-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <div class="nav-item active" data-panel="ielts">
+      <span class="nav-icon">👩🏻‍💻</span><span>IELTS</span>
+    </div>
+    <div class="nav-item" data-panel="speaking">
+      <span class="nav-icon">💬</span><span>口语</span>
+    </div>
+    <div class="nav-item" data-panel="civil">
+      <span class="nav-icon">📖</span><span>考公</span>
+    </div>
+    <div class="nav-item" data-panel="diary">
+      <span class="nav-icon">🌙</span><span>日记本</span>
+    </div>
+  </aside>
+
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-title" id="topbar-title">IELTS</div>
+  </header>
+
+  <!-- 主内容区 -->
+  <div class="main-wrap">
+  <main class="main">
+    <!-- 雅思学习 -->
+    <section class="panel active" id="panel-ielts">
+      <div class="panel-header">
+        <div class="panel-title">👩🏻‍💻 雅思学习</div>
+        <div class="panel-subtitle">坚持每天进步一点点</div>
+      </div>
+      <div class="exam-info">
+        <div class="info-card info-card-combined" id="ielts-date-card">
+          <div class="info-cell">
+            <div class="info-label">考试日期</div>
+            <div class="info-value">2026.8.15</div>
+            <div class="info-extra countdown" id="ielts-countdown"></div>
+          </div>
+          <div class="info-divider"></div>
+          <div class="info-cell">
+            <div class="info-label">目标分数</div>
+            <div class="info-value">7.0 分</div>
+            <div class="info-extra">听说读写 全面突破</div>
+          </div>
+          <div class="info-divider"></div>
+          <div class="info-cell">
+            <div class="info-label">今日完成</div>
+            <div class="info-value" id="ielts-progress">0 / 0</div>
+            <div class="info-extra">保持节奏，加油！</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">📝 今日 To-Do <span class="count" id="ielts-count"></span></div>
+      <div class="todo-input-row">
+        <input type="text" class="todo-input" id="ielts-input" placeholder="添加一项学习任务，回车确认...">
+        <button class="btn" onclick="addTodo('ielts')">添加</button>
+      </div>
+      <ul class="todo-list" id="ielts-list"></ul>
+    </section>
+
+    <!-- 口语积累 -->
+    <section class="panel" id="panel-speaking">
+      <div class="panel-header">
+        <div class="panel-title">💬 口语积累</div>
+        <div class="panel-subtitle">看到好的句子和表达，随手积累下来</div>
+      </div>
+      <div class="phrase-input-row">
+        <input type="text" class="phrase-input" id="speaking-input" placeholder="输入好的句子或表达，回车确认...">
+        <button class="btn" onclick="addPhrase()">添加</button>
+      </div>
+      <div class="section-title">🗂️ 我的积累 <span class="count" id="speaking-count"></span></div>
+      <div class="phrase-grid" id="speaking-grid"></div>
+    </section>
+
+    <!-- 考公学习 -->
+    <section class="panel" id="panel-civil">
+      <div class="panel-header">
+        <div class="panel-title">📖 考公学习</div>
+        <div class="panel-subtitle">稳扎稳打，行测申论双线推进</div>
+      </div>
+      <div class="exam-info">
+        <div class="info-card" id="civil-date-card">
+          <div class="info-label">考试日期</div>
+          <div class="info-value">12.7</div>
+          <div class="info-extra countdown" id="civil-countdown"></div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">今日完成</div>
+          <div class="info-value" id="civil-progress">0 / 0</div>
+          <div class="info-extra">每天进步一点点</div>
+        </div>
+      </div>
+
+      <div class="section-title">📝 今日 To-Do <span class="count" id="civil-count"></span></div>
+      <div class="todo-input-row">
+        <input type="text" class="todo-input" id="civil-input" placeholder="添加一项学习任务，回车确认...">
+        <button class="btn" onclick="addTodo('civil')">添加</button>
+      </div>
+      <ul class="todo-list" id="civil-list"></ul>
+    </section>
+
+    <!-- 每日感受 -->
+    <section class="panel" id="panel-diary">
+      <div class="panel-header">
+        <div class="panel-title">🌙 每日感受</div>
+        <div class="panel-subtitle">随心记，留住每一天的心情</div>
+      </div>
+
+      <div class="diary-input">
+        <textarea class="diary-textarea" id="diary-input" placeholder="今天发生了什么？心情怎么样？写下来吧..."></textarea>
+        <div class="diary-input-footer">
+          <div class="diary-date" id="diary-today"></div>
+          <div class="diary-mood">
+            <button class="mood-btn" data-mood="😊" title="开心">😊</button>
+            <button class="mood-btn" data-mood="😌" title="平静">😌</button>
+            <button class="mood-btn" data-mood="😤" title="烦躁">😤</button>
+            <button class="mood-btn" data-mood="😔" title="低落">😔</button>
+            <button class="mood-btn" data-mood="🥱" title="疲惫">🥱</button>
+            <button class="mood-btn" data-mood="🔥" title="斗志昂扬">🔥</button>
+          </div>
+          <button class="btn" onclick="addDiary()">保存今日</button>
+        </div>
+      </div>
+
+      <div class="section-title">📔 往日记录 <span class="count" id="diary-count"></span></div>
+      <div class="diary-list" id="diary-list"></div>
+    </section>
+  </main>
+  </div><!-- /main-wrap -->
+</div>
+
+<script>
+// ============ 数据存储 ============
+const STORAGE_KEY = 'workbench_data_v1';
+
+let state = {
+  ielts: [],        // {id, text, done, createdAt}
+  civil: [],
+  speaking: [],     // {id, text, createdAt}
+  diary: [],        // {id, content, mood, date}
+  currentMood: ''
+};
+
+function load() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch(e) { console.error('加载失败', e); }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// ============ 侧边栏抽屉 ============
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const hamburger = document.getElementById('hamburger');
+const topbarTitle = document.getElementById('topbar-title');
+
+const panelTitles = {
+  ielts: '👩🏻‍💻 IELTS',
+  speaking: '💬 口语积累',
+  civil: '📖 考公',
+  diary: '🌙 日记本'
+};
+
+function openSidebar() {
+  sidebar.classList.add('open');
+  overlay.classList.add('show');
+  hamburger.classList.add('open');
+}
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  hamburger.classList.remove('open');
+}
+
+function toggleSidebar() {
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+}
+
+// ============ 导航切换 ============
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const panel = item.dataset.panel;
+    document.getElementById('panel-' + panel).classList.add('active');
+    topbarTitle.textContent = panelTitles[panel] || '';
+    // 手机端选择后自动收起侧边栏
+    closeSidebar();
+  });
+});
+
+// ============ 倒计时 ============
+function calcCountdown(targetDate, elementId, cardId) {
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const diff = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24));
+  const el = document.getElementById(elementId);
+  const card = document.getElementById(cardId);
+  if (diff < 0) {
+    el.textContent = '考试已结束';
+    return;
+  }
+  el.textContent = `还有 ${diff} 天`;
+  if (diff <= 30) { el.classList.add('urgent'); card.classList.add('urgent'); }
+  else if (diff <= 90) { el.classList.add('warning'); card.classList.add('warning'); }
+}
+
+// ============ To-Do List ============
+function addTodo(type) {
+  const input = document.getElementById(type + '-input');
+  const text = input.value.trim();
+  if (!text) return;
+  state[type].unshift({
+    id: uid(),
+    text: text,
+    done: false,
+    createdAt: new Date().toISOString()
+  });
+  input.value = '';
+  save();
+  renderTodo(type);
+}
+
+function toggleTodo(type, id) {
+  const item = state[type].find(t => t.id === id);
+  if (item) {
+    item.done = !item.done;
+    save();
+    renderTodo(type);
+  }
+}
+
+function deleteTodo(type, id) {
+  state[type] = state[type].filter(t => t.id !== id);
+  save();
+  renderTodo(type);
+}
+
+function editTodo(type, id, newText) {
+  const item = state[type].find(t => t.id === id);
+  if (item) {
+    item.text = newText.trim() || item.text;
+    save();
+    renderTodo(type);
+  }
+}
+
+function renderTodo(type) {
+  const list = document.getElementById(type + '-list');
+  const todos = state[type];
+  const done = todos.filter(t => t.done).length;
+  const total = todos.length;
+
+  document.getElementById(type + '-count').textContent = `${done}/${total} 完成`;
+  document.getElementById(type + '-progress').textContent = `${done} / ${total}`;
+
+  if (todos.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">📋</div>还没有任务，添加一项开始吧～</div>`;
+    return;
+  }
+
+  list.innerHTML = todos.map(t => `
+    <li class="todo-item ${t.done ? 'done' : ''}" data-id="${t.id}">
+      <div class="todo-checkbox ${t.done ? 'checked' : ''}" onclick="toggleTodo('${type}', '${t.id}')"></div>
+      <div class="todo-text" onclick="startEditTodo('${type}', '${t.id}', this)">${escapeHtml(t.text)}</div>
+      <span class="todo-meta">${formatDate(t.createdAt)}</span>
+      <span class="todo-delete" onclick="deleteTodo('${type}', '${t.id}')">✕</span>
+    </li>
+  `).join('');
+}
+
+function startEditTodo(type, id, el) {
+  const item = state[type].find(t => t.id === id);
+  if (!item || item.done) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'todo-text-edit';
+  input.value = item.text;
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  const finish = () => editTodo(type, id, input.value);
+  input.addEventListener('blur', finish);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') renderTodo(type);
+  });
+}
+
+// 回车添加
+['ielts', 'civil'].forEach(type => {
+  document.getElementById(type + '-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTodo(type);
+  });
+});
+
+// ============ 口语积累 ============
+function addPhrase() {
+  const input = document.getElementById('speaking-input');
+  const text = input.value.trim();
+  if (!text) return;
+  state.speaking.unshift({
+    id: uid(),
+    text: text,
+    createdAt: new Date().toISOString()
+  });
+  input.value = '';
+  save();
+  renderPhrase();
+}
+
+function deletePhrase(id) {
+  state.speaking = state.speaking.filter(p => p.id !== id);
+  save();
+  renderPhrase();
+}
+
+function editPhrase(id, newText) {
+  const item = state.speaking.find(p => p.id === id);
+  if (item) {
+    item.text = newText.trim() || item.text;
+    save();
+    renderPhrase();
+  }
+}
+
+function renderPhrase() {
+  const grid = document.getElementById('speaking-grid');
+  document.getElementById('speaking-count').textContent = `${state.speaking.length} 条`;
+
+  if (state.speaking.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="emoji">💬</div>还没有积累，看到好句子就记下来吧～</div>`;
+    return;
+  }
+
+  grid.innerHTML = state.speaking.map(p => `
+    <div class="phrase-card" data-id="${p.id}">
+      <div class="phrase-text" onclick="startEditPhrase('${p.id}', this)">${escapeHtml(p.text)}</div>
+      <div class="phrase-footer">
+        <span>${formatDate(p.createdAt)}</span>
+        <span class="phrase-delete" onclick="deletePhrase('${p.id}')">删除</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function startEditPhrase(id, el) {
+  const item = state.speaking.find(p => p.id === id);
+  if (!item) return;
+  const textarea = document.createElement('textarea');
+  textarea.className = 'phrase-text-edit';
+  textarea.value = item.text;
+  el.replaceWith(textarea);
+  textarea.focus();
+  const finish = () => editPhrase(id, textarea.value);
+  textarea.addEventListener('blur', finish);
+}
+
+document.getElementById('speaking-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addPhrase();
+});
+
+// ============ 日记 ============
+function addDiary() {
+  const input = document.getElementById('diary-input');
+  const content = input.value.trim();
+  if (!content) {
+    alert('写点什么再保存吧～');
+    return;
+  }
+  state.diary.unshift({
+    id: uid(),
+    content: content,
+    mood: state.currentMood,
+    date: new Date().toISOString()
+  });
+  input.value = '';
+  state.currentMood = '';
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  save();
+  renderDiary();
+}
+
+function deleteDiary(id) {
+  if (!confirm('确定删除这条日记吗？')) return;
+  state.diary = state.diary.filter(d => d.id !== id);
+  save();
+  renderDiary();
+}
+
+function editDiary(id, newContent) {
+  const item = state.diary.find(d => d.id === id);
+  if (item) {
+    item.content = newContent.trim() || item.content;
+    item.date = new Date().toISOString();
+    save();
+    renderDiary();
+  }
+}
+
+function renderDiary() {
+  const list = document.getElementById('diary-list');
+  document.getElementById('diary-count').textContent = `${state.diary.length} 篇`;
+
+  if (state.diary.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">🌙</div>还没有记录，写下今天的第一篇吧～</div>`;
+    return;
+  }
+
+  list.innerHTML = state.diary.map(d => `
+    <div class="diary-card" data-id="${d.id}">
+      <div class="diary-card-header">
+        <div class="diary-card-date">
+          ${d.mood ? `<span class="diary-card-mood">${d.mood}</span>` : ''}
+          <span>${formatDateTime(d.date)}</span>
+        </div>
+        <div class="diary-card-actions">
+          <span class="diary-action" onclick="startEditDiary('${d.id}', this)">编辑</span>
+          <span class="diary-action delete" onclick="deleteDiary('${d.id}')">删除</span>
+        </div>
+      </div>
+      <div class="diary-card-content" onclick="startEditDiary('${d.id}', this)">${escapeHtml(d.content)}</div>
+    </div>
+  `).join('');
+}
+
+function startEditDiary(id, el) {
+  const item = state.diary.find(d => d.id === id);
+  if (!item) return;
+  const textarea = document.createElement('textarea');
+  textarea.className = 'diary-card-edit';
+  textarea.value = item.content;
+  el.replaceWith(textarea);
+  textarea.focus();
+  const finish = () => editDiary(id, textarea.value);
+  textarea.addEventListener('blur', finish);
+}
+
+// 心情选择
+document.querySelectorAll('.mood-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mood = btn.dataset.mood;
+    if (state.currentMood === mood) {
+      state.currentMood = '';
+      btn.classList.remove('selected');
+    } else {
+      state.currentMood = mood;
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+  });
+});
+
+// ============ 工具函数 ============
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return '今天';
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function formatDateTime(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) {
+    return `今天 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function updateTodayDate() {
+  const d = new Date();
+  const weekdays = ['日','一','二','三','四','五','六'];
+  document.getElementById('diary-today').textContent =
+    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
+}
+
+// ============ 初始化 ============
+load();
+calcCountdown(new Date('2026-08-15'), 'ielts-countdown', 'ielts-date-card');
+calcCountdown(new Date('2026-12-07'), 'civil-countdown', 'civil-date-card');
+updateTodayDate();
+renderTodo('ielts');
+renderTodo('civil');
+renderPhrase();
+renderDiary();
+</script>
+</body>
+</html>
